@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Speed <div class="crud-form-container">
+            <div class="form-buttons">
+                <div class="form-buttons">
+                    <div class="form-buttons">
+                        <button type="button" class="submit-btn" data-form="voluntario">Enviar</button>
+                        <button type="button" class="cancel-btn" data-form="voluntario">Cancelar</button>
+                    </div>
+                    </form>
+                </div> <button type="button" class="submit-btn" data-form="admin">Enviar</button>
+                <button type="button" class="cancel-btn" data-form="admin">Cancelar</button>
+            </div>
+            </form>
+        </div> <button type="button" class="submit-btn" data-form="usuario">Enviar</button>
+        <button type="button" class="cancel-btn" data-form="usuario">Cancelar</button>
+        </div>
+        </form>
+        </div>id="adocaoForm" class="crud-form" style="display: none;">
+        <h5 id="adocaoCrudTitle"></h5>
+        <div class="form-section">
+            <input type="text" id="adocaoId" placeholder="ID da Adoção" style="display: none;">
+            <input type="text" id="petIdAdocao" name="id_pet" placeholder="ID do Pet" required>
+            <input type="text" id="userEmail" name="id_usuario" placeholder="ID do Usuário" required>
+        </div>
+        <div class="form-buttons">
+            <button type="button" class="submit-btn" data-form="adocao">Enviar</button>
+            <button type="button" class="cancel-btn" data-form="adocao">Cancelar</button>
+        </div>
+        </form>
+        </div>
+        <div class="form-buttons">
+            <button type="button" class="submit-btn" data-form="pet">Enviar</button>
+            <button type="button" class="cancel-btn" data-form="pet">Cancelar</button>
+        </div>
+        </form>
+        </div>o - Dashboard ONG
+    </title>
+    <link rel="stylesheet" href="style/style.css">
+</head>
+
+<body>
+    <div class="container">
+        <!-- Aside - Barra Lateral -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>🐕 Speed-Banco</h2>
+                <p>Dashboard ONG</p>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <h4>📊 Consultas Estatísticas</h4>
+                    <ul>
+                        <li><button class="nav-btn" data-query="usuarios-com-pet">👥 Usuários com Pet</button></li>
+                        <li><button class="nav-btn" data-query="pets-grandes-medio">🐾 Pets Grandes/Médios</button></li>
+                        <li><button class="nav-btn" data-query="voluntarios-por-funcao">🤝 Voluntários por
+                                Função</button></li>
+                        <li><button class="nav-btn" data-query="adocoes-por-porte">🏠 Adoções por Porte</button></li>
+                        <li><button class="nav-btn" data-query="voluntarios-habilidade-cidade">🌍 Voluntários por
+                                Cidade</button></li>
+                        <li><button class="nav-btn" data-query="pets-por-especie-evento">🎉 Pets por Espécie</button>
+                        </li>
+                        <li><button class="nav-btn" data-query="media-idade-pets-cidade">📈 Média Idade Pets</button>
+                        </li>
+                        <li><button class="nav-btn" data-query="habilidades-voluntarios">⚡ Habilidades
+                                Voluntários</button></li>
+                        <li><button class="nav-btn" data-query="usuarios-sem-pet-adotar">💝 Usuários sem Pet</button>
+                        </li>
+                        <li><button class="nav-btn" data-query="pets-multiplas-fotos">📸 Pets com Fotos</button></li>
+                        <li><button class="nav-btn" data-query="pets-raca-adotados-evento">🏆 Pets por Raça</button>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <h4>🔄 Ações</h4>
+                    <ul>
+                        <li><button class="nav-btn action-btn" id="refreshAll">🔄 Atualizar Tudo</button></li>
+                        <li><button class="nav-btn action-btn" id="clearResults">🗑️ Limpar Resultados</button></li>
+                    </ul>
+                </div>
+            </nav>
+
+            <div class="sidebar-footer">
+                <p>© 2024 Speed-Banco</p>
+            </div>
+        </aside>
+
+        <!-- Main - Conteúdo Principal -->
+        <main class="main-content">
+            <header class="main-header">
+                <h1>Dashboard ONG</h1>
+                <div class="header-actions">
+                    <button class="btn btn-primary">🔄 Atualizar</button>
+                    <button class="btn btn-secondary">⚙️ Configurações</button>
+                </div>
+            </header>
+
+            <div class="content-area">
+
+                <!-- Tabela de Resultados -->
+                <section class="results-section">
+                    <div class="results-container">
+                        <div class="results-header">
+                            <h3 id="queryTitle">📋 Resultados da Consulta</h3>
+                            <div class="results-info">
+                                <span id="resultCount" class="result-count">0 registros encontrados</span>
+                                <span id="queryTime" class="query-time"></span>
+                            </div>
+                        </div>
+
+                        <div class="table-wrapper">
+                            <table id="resultsTable" class="results-table">
+                                <thead id="tableHeader">
+                                    <tr>
+                                        <th>Carregando...</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tableBody">
+                                    <tr>
+                                        <td colspan="100" class="loading-message">
+                                            <div class="loading-spinner"></div>
+                                            <p>Selecione uma consulta para ver os resultados</p>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Seção de Estatísticas Rápidas -->
+                <section class="quick-stats">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon">📊</div>
+                            <div class="stat-content">
+                                <h4>Total de Registros</h4>
+                                <p id="totalRecords">0</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">⚡</div>
+                            <div class="stat-content">
+                                <h4>Tempo de Consulta</h4>
+                                <p id="queryTimeDisplay">0ms</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">🔄</div>
+                            <div class="stat-content">
+                                <h4>Última Atualização</h4>
+                                <p id="lastUpdate">Nunca</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Seção de CRUD -->
+                <section class="crud-sections">
+                    <!-- CRUD Pets -->
+                    <section class="crud-section">
+                        <h4>🐾 CRUD de Pets</h4>
+                        <div class="crud-buttons">
+                            <button class="crud-btn " data-crud="pet" data-action="create">➕ Criar Pet</button>
+                            <button class="crud-btn" data-crud="pet" data-action="read">📜 Listar Pets</button>
+                            <button class="crud-btn" data-crud="pet" data-action="update">✏️ Atualizar Pet</button>
+                            <button class="crud-btn" data-crud="pet" data-action="delete">🗑️ Excluir Pet</button>
+                        </div>
+                        <div class="crud-form-container">
+                            <form id="petForm" class="crud-form" style="display: none;">
+                                <h5 id="petCrudTitle"></h5>
+                                <input type="text" id="petId" placeholder="ID do Pet" name="id_pet"
+                                    style="display: none;" value="">
+
+                                <!-- Informações do Pet -->
+                                <div class="form-section">
+                                    <h6>Informações do Pet</h6>
+                                    <input type="text" id="petName" name="nome" placeholder="Nome do Pet" required>
+                                    <input type="text" id="petSpecies" name="especie" placeholder="Espécie do Pet"
+                                        required>
+                                    <input type="text" id="petBreed" name="raca" placeholder="Raça do Pet">
+                                    <input type="number" id="petAge" name="idade" placeholder="Idade do Pet">
+                                    <select id="petSex" name="sexo">
+                                        <option value="">Selecione o Sexo</option>
+                                        <option value="macho">Macho</option>
+                                        <option value="fêmea">Fêmea</option>
+                                    </select>
+                                    <select id="petSize" name="porte">
+                                        <option value="">Selecione o Porte</option>
+                                        <option value="pequeno">Pequeno</option>
+                                        <option value="medio">Médio</option>
+                                        <option value="grande">Grande</option>
+                                    </select>
+                                </div>
+
+                                <!-- Endereço -->
+                                <div class="form-section">
+                                    <h6>Localização do Pet</h6>
+                                    <input type="text" id="petCep" name="cep" placeholder="CEP">
+                                    <input type="text" id="petLogradouro" name="logradouro" placeholder="Logradouro">
+                                    <input type="text" id="petNumero" name="numero" placeholder="Número">
+                                    <input type="text" id="petBairro" name="bairro" placeholder="Bairro">
+                                    <input type="text" id="petCidade" name="cidade" placeholder="Cidade">
+                                    <input type="text" id="petEstado" name="estado" placeholder="Estado">
+                                </div>
+
+                                <div class="form-buttons">
+                                    <button class="submit-btn" data-form="pet">Enviar</button>
+                                    <button class="cancel-btn" data-form="pet">Cancelar</button>
+                                </div>
+                            </form>
+                    </section>
+
+                    <!-- CRUD Adoção -->
+                    <section class="crud-section">
+                        <h4>💝 CRUD de Adoção</h4>
+                        <div class="crud-buttons">
+                            <button class="crud-btn" data-crud="adocao" data-action="create">➕ Criar Adoção</button>
+                            <button class="crud-btn" data-crud="adocao" data-action="read">📜 Listar Adoções</button>
+                            <button class="crud-btn" data-crud="adocao" data-action="update">✏️ Atualizar
+                                Adoção</button>
+                            <button class="crud-btn" data-crud="adocao" data-action="delete">🗑️ Excluir Adoção</button>
+                        </div>
+                        <form id="adocaoForm" class="crud-form" name="id" style="display: none;">
+                            <h5 id="adocaoCrudTitle"></h5>
+                            <input type="text" id="adocaoId" placeholder="ID da Adoção" style="display: none;">
+                            <input type="text" id="petIdAdocao" name="id_pet" placeholder="ID do Pet" required>
+                            <input type="text" id="usuarioIdAdocao" name="id_usuario" placeholder="ID do Usuário" required>
+                            <div class="form-buttons">
+                                <button class="submit-btn" data-form="adocao">Enviar</button>
+                                <button class="cancel-btn" data-form="adocao">Cancelar</button>
+                            </div>
+                        </form>
+                    </section>
+
+                    <!-- CRUD Usuário Comum -->
+                    <section class="crud-section">
+                        <h4>👤 CRUD de Usuário Comum</h4>
+                        <div class="crud-buttons">
+                            <button class="crud-btn" data-crud="usuario" data-action="create">➕ Criar Usuário</button>
+                            <button class="crud-btn" data-crud="usuario" data-action="read">📜 Buscar Usuário</button>
+                            <button class="crud-btn" data-crud="usuario" data-action="update">✏️ Atualizar
+                                Usuário</button>
+                            <button class="crud-btn" data-crud="usuario" data-action="delete">🗑️ Excluir
+                                Usuário</button>
+                        </div>
+                        <div class="crud-form-container">
+                            <form id="usuarioForm" class="crud-form" style="display: none;">
+                                <h5 id="usuarioCrudTitle"></h5>
+                                <!-- Informações Básicas -->
+                                <div class="form-section">
+                                    <h6>Informações Básicas</h6>
+                                    <input type="email" id="usuarioEmail" name="email" placeholder="Email" required>
+                                    <input type="text" id="usuarioNome" name="nome" placeholder="Nome" required>
+                                    <input type="text" id="usuarioSobrenome" name="sobrenome" placeholder="Sobrenome"
+                                        required>
+                                    <input type="password" id="usuarioSenha" name="senha" placeholder="Senha" required>
+                                    <input type="date" id="usuarioDataNascimento" name="data_nascimento"
+                                        placeholder="Data de Nascimento">
+                                    <input type="tel" id="usuarioTelefone" name="telefone" placeholder="Telefone">
+                                    <input type="text" id="usuarioCpf" name="cpf" placeholder="CPF">
+                                </div>
+
+                                <!-- Endereço -->
+                                <div class="form-section">
+                                    <h6>Endereço</h6>
+                                    <input type="text" id="usuarioCep" name="cep" placeholder="CEP">
+                                    <input type="text" id="usuarioLogradouro" name="logradouro"
+                                        placeholder="Logradouro">
+                                    <input type="text" id="usuarioNumero" name="numero" placeholder="Número">
+                                    <input type="text" id="usuarioBairro" name="bairro" placeholder="Bairro">
+                                    <input type="text" id="usuarioCidade" name="cidade" placeholder="Cidade">
+                                    <input type="text" id="usuarioEstado" name="estado" placeholder="Estado">
+                                    <input type="text" id="usuarioComplemento" name="complemento"
+                                        placeholder="Complemento">
+                                </div>
+
+                                <!-- Informações Adicionais -->
+                                <div class="form-section">
+                                    <h6>Informações Adicionais</h6>
+                                    <select id="usuarioEscolaridade" name="escolaridade">
+                                        <option value="">Selecione a Escolaridade</option>
+                                        <option value="fundamental">Ensino Fundamental</option>
+                                        <option value="medio">Ensino Médio</option>
+                                        <option value="superior">Ensino Superior</option>
+                                        <option value="pos">Pós-Graduação</option>
+                                    </select>
+                                    <select id="usuarioPossuiPet" name="possui_pet">
+                                        <option value="">Possui Pet?</option>
+                                        <option value="sim">Sim</option>
+                                        <option value="nao">Não</option>
+                                    </select>
+                                    <select id="usuarioDesejaAdotar" name="deseja_adotar">
+                                        <option value="">Deseja Adotar?</option>
+                                        <option value="sim">Sim</option>
+                                        <option value="nao">Não</option>
+                                    </select>
+                                    <select id="usuarioDesejaContribuir" name="deseja_contribuir">
+                                        <option value="">Deseja Contribuir?</option>
+                                        <option value="sim">Sim</option>
+                                        <option value="nao">Não</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-buttons">
+                                    <button class="submit-btn" data-form="usuario">Enviar</button>
+                                    <button class="cancel-btn" data-form="usuario">Cancelar</button>
+                                </div>
+                            </form>
+                    </section>
+
+                    <!-- CRUD Usuário Administrador -->
+                    <section class="crud-section">
+                        <h4>👨‍💼 CRUD de Administrador</h4>
+                        <div class="crud-buttons">
+                            <button class="crud-btn" data-crud="admin" data-action="create">➕ Criar
+                                Administrador</button>
+                            <button class="crud-btn" data-crud="admin" data-action="read">📜 Buscar
+                                Administrador</button>
+                            <button class="crud-btn" data-crud="admin" data-action="update">✏️ Atualizar
+                                Administrador</button>
+                            <button class="crud-btn" data-crud="admin" data-action="delete">🗑️ Excluir
+                                Administrador</button>
+                        </div>
+                        <div class="crud-form-container">
+                            <form id="adminForm" class="crud-form" style="display: none;">
+                                <h5 id="adminCrudTitle"></h5>
+                                <!-- Informações Básicas -->
+                                <div class="form-section">
+                                    <h6>Informações Básicas</h6>
+                                    <input type="email" id="adminEmail" name="email" placeholder="Email" required>
+                                    <input type="text" id="adminNome" name="nome" placeholder="Nome" required>
+                                    <input type="text" id="adminSobrenome" name="sobrenome" placeholder="Sobrenome"
+                                        required>
+                                    <input type="password" id="adminSenha" name="senha" placeholder="Senha" required>
+                                    <input type="date" id="adminDataNascimento" name="data_nascimento"
+                                        placeholder="Data de Nascimento">
+                                    <input type="tel" id="adminTelefone" name="telefone" placeholder="Telefone">
+                                    <input type="text" id="adminCpf" name="cpf" placeholder="CPF">
+                                </div>
+
+                                <!-- Endereço -->
+                                <div class="form-section">
+                                    <h6>Endereço</h6>
+                                    <input type="text" id="adminCep" name="cep" placeholder="CEP">
+                                    <input type="text" id="adminLogradouro" name="logradouro" placeholder="Logradouro">
+                                    <input type="text" id="adminNumero" name="numero" placeholder="Número">
+                                    <input type="text" id="adminBairro" name="bairro" placeholder="Bairro">
+                                    <input type="text" id="adminCidade" name="cidade" placeholder="Cidade">
+                                    <input type="text" id="adminEstado" name="estado" placeholder="Estado">
+                                    <input type="text" id="adminComplemento" name="complemento"
+                                        placeholder="Complemento">
+                                </div>
+
+                                <!-- Informações Adicionais -->
+                                <div class="form-section">
+                                    <h6>Informações Adicionais</h6>
+                                    <select id="adminEscolaridade" name="escolaridade">
+                                        <option value="">Selecione a Escolaridade</option>
+                                        <option value="fundamental">Ensino Fundamental</option>
+                                        <option value="medio">Ensino Médio</option>
+                                        <option value="superior">Ensino Superior</option>
+                                        <option value="pos">Pós-Graduação</option>
+                                    </select>
+                                    <select id="adminPossuiPet" name="possui_pet">
+                                        <option value="">Possui Pet?</option>
+                                        <option value="sim">Sim</option>
+                                        <option value="nao">Não</option>
+                                    </select>
+                                    <input type="text" id="adminFuncao" name="funcao" placeholder="Função">
+                                </div>
+
+                                <div class="form-buttons">
+                                    <button class="submit-btn" data-form="admin">Enviar</button>
+                                    <button class="cancel-btn" data-form="admin">Cancelar</button>
+                                </div>
+                            </form>
+                    </section>
+
+                    <!-- CRUD Usuário Voluntário -->
+                    <section class="crud-section">
+                        <h4>🤝 CRUD de Voluntário</h4>
+                        <div class="crud-buttons">
+                            <button class="crud-btn" data-crud="voluntario" data-action="create">➕ Criar
+                                Voluntário</button>
+                            <button class="crud-btn" data-crud="voluntario" data-action="read">📜 Buscar
+                                Voluntário</button>
+                            <button class="crud-btn" data-crud="voluntario" data-action="update">✏️ Atualizar
+                                Voluntário</button>
+                            <button class="crud-btn" data-crud="voluntario" data-action="delete">🗑️ Excluir
+                                Voluntário</button>
+                        </div>
+                        <div class="crud-form-container">
+                            <form id="voluntarioForm" class="crud-form" style="display: none;">
+                                <h5 id="voluntarioCrudTitle"></h5>
+                                <!-- Informações Básicas -->
+                                <div class="form-section">
+                                    <h6>Informações Básicas</h6>
+                                    <input type="email" id="voluntarioEmail" name="email" placeholder="Email" required>
+                                    <input type="text" id="voluntarioNome" name="nome" placeholder="Nome" required>
+                                    <input type="text" id="voluntarioSobrenome" name="sobrenome" placeholder="Sobrenome"
+                                        required>
+                                    <input type="password" id="voluntarioSenha" name="senha" placeholder="Senha"
+                                        required>
+                                    <input type="date" id="voluntarioDataNascimento" name="data_nascimento"
+                                        placeholder="Data de Nascimento">
+                                    <input type="tel" id="voluntarioTelefone" name="telefone" placeholder="Telefone">
+                                    <input type="text" id="voluntarioCpf" name="cpf" placeholder="CPF">
+                                </div>
+
+                                <!-- Endereço -->
+                                <div class="form-section">
+                                    <h6>Endereço</h6>
+                                    <input type="text" id="voluntarioCep" name="cep" placeholder="CEP">
+                                    <input type="text" id="voluntarioLogradouro" name="logradouro"
+                                        placeholder="Logradouro">
+                                    <input type="text" id="voluntarioNumero" name="numero" placeholder="Número">
+                                    <input type="text" id="voluntarioBairro" name="bairro" placeholder="Bairro">
+                                    <input type="text" id="voluntarioCidade" name="cidade" placeholder="Cidade">
+                                    <input type="text" id="voluntarioEstado" name="estado" placeholder="Estado">
+                                    <input type="text" id="voluntarioComplemento" name="complemento"
+                                        placeholder="Complemento">
+                                </div>
+
+                                <!-- Informações Adicionais -->
+                                <div class="form-section">
+                                    <h6>Informações Adicionais</h6>
+                                    <select id="voluntarioEscolaridade" name="escolaridade">
+                                        <option value="">Selecione a Escolaridade</option>
+                                        <option value="fundamental">Ensino Fundamental</option>
+                                        <option value="medio">Ensino Médio</option>
+                                        <option value="superior">Ensino Superior</option>
+                                        <option value="pos">Pós-Graduação</option>
+                                    </select>
+                                    <select id="voluntarioPossuiPet" name="possui_pet">
+                                        <option value="">Possui Pet?</option>
+                                        <option value="sim">Sim</option>
+                                        <option value="nao">Não</option>
+                                    </select>
+                                    <input type="text" id="voluntarioFuncao" name="funcao" placeholder="Função">
+                                    <textarea id="voluntarioHabilidades" name="habilidade"
+                                        placeholder="Habilidades (separadas por vírgula)"></textarea>
+                                </div>
+
+                                <div class="form-buttons">
+                                    <button class="submit-btn" data-form="voluntario">Enviar</button>
+                                    <button class="cancel-btn" data-form="voluntario">Cancelar</button>
+                                </div>
+                            </form>
+                    </section>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <script src="script/script.js"></script>
+    <script src="script/crud.js"></script>
+</body>
+
+</html>
