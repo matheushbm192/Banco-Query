@@ -1,4 +1,4 @@
-// CRUD Operations Handler
+// CRUD Operations Handler - VERSÃO CORRIGIDA
 // Funções utilitárias
 function formatHeader(header) {
     return header
@@ -12,30 +12,58 @@ function formatCellValue(value) {
     if (value === null || value === undefined) {
         return '-';
     }
-    
+
     if (typeof value === 'number') {
         return value.toLocaleString('pt-BR');
     }
-    
+
     if (typeof value === 'boolean') {
         return value ? 'Sim' : 'Não';
     }
-    
+
     return String(value);
 }
 
+// Função para mostrar notificações
+function showNotification(message, type = 'success') {
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.innerHTML = `
+        <div style="
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            background: ${type === 'success' ? '#4CAF50' : '#f44336'};
+            color: white;
+            border-radius: 4px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            z-index: 1000;
+            font-family: Arial, sans-serif;
+        ">
+            ${message}
+        </div>
+    `;
+
+    document.body.appendChild(notification);
+
+    setTimeout(() => {
+        document.body.removeChild(notification);
+    }, 4000);
+}
+
 // Inicialização do CRUD
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     const API_BASE_URL = 'http://localhost:3000/api';
 
     // Handle CRUD button clicks
     document.querySelectorAll('.crud-btn').forEach(button => {
-        button.addEventListener('click', function() {
+        button.addEventListener('click', function () {
             const crudType = this.dataset.crud;
             const action = this.dataset.action;
             const formId = `${crudType}Form`;
             const titleId = `${crudType}CrudTitle`;
-            
+
             // Hide all forms first
             document.querySelectorAll('.crud-form').forEach(form => {
                 form.style.display = 'none';
@@ -44,14 +72,15 @@ document.addEventListener('DOMContentLoaded', function() {
             // Show the selected form
             const form = document.getElementById(formId);
             const titleElement = document.getElementById(titleId);
-            
+
             if (form && titleElement) {
                 form.style.display = 'block';
-                
+
                 // Set the appropriate title based on action
-                switch(action) {
+                switch (action) {
                     case 'create':
                         titleElement.textContent = `Criar Novo ${crudType.charAt(0).toUpperCase() + crudType.slice(1)}`;
+                        form.reset(); // Limpa o formulário
                         break;
                     case 'read':
                         titleElement.textContent = `Buscar ${crudType.charAt(0).toUpperCase() + crudType.slice(1)}`;
@@ -64,78 +93,99 @@ document.addEventListener('DOMContentLoaded', function() {
                         break;
                 }
 
-                // Handle which fields to show based on action
-                const idField = form.querySelector(`#${crudType}Id`);
-                if (idField) {
-                    idField.style.display = action === 'create' ? 'none' : 'block';
-                }
+                // Store current action in form
+                form.setAttribute('data-current-action', action);
 
-                // Show/hide fields based on action
+                // Handle which fields to show based on action
+                const idField = form.querySelector(`#${crudType}Id, #${crudType}Email`);
+
                 if (action === 'create') {
-                    // Show all fields for create, except the ID field
+                    // Show all fields for create, except ID field
                     form.querySelectorAll('input, select, textarea').forEach(input => {
-                        if (input.id === `${crudType}Id`) {
+                        // Para adoção no create, mostrar apenas petIdAdocao e usuarioIdAdocao
+                        if (crudType === 'adocao') {
+                            if (input.id === 'petIdAdocao' || input.id === 'usuarioIdAdocao') {
+                                input.style.display = 'block';
+                                input.required = true;
+                            } else {
+                                input.style.display = 'none';
+                                input.required = false;
+                            }
+                        }
+                        // Para outros tipos, lógica original
+                        else if (input.id.toLowerCase().includes('id') && !input.id.toLowerCase().includes('pid')) {
                             input.style.display = 'none';
+                            input.required = false;
                         } else {
                             input.style.display = 'block';
                         }
                     });
-                    // Make sure all form sections are visible
                     form.querySelectorAll('.form-section').forEach(section => {
                         section.style.display = 'block';
                     });
                 } else if (action === 'read' || action === 'delete') {
                     // Show only ID/email field for read and delete
                     form.querySelectorAll('input, select, textarea').forEach(input => {
-                        if (!input.id.toLowerCase().includes('id') && 
-                            !input.id.toLowerCase().includes('email')) {
-                            input.style.display = 'none';
-                        } else {
+                        // Para adoção, mostrar apenas o campo adocaoId
+                        if (crudType === 'adocao') {
+                            if (input.id === 'adocaoId') {
+                                input.style.display = 'block';
+                                input.required = true;
+                            } else {
+                                input.style.display = 'none';
+                                input.required = false;
+                            }
+                        }
+                        // Para outros tipos, lógica original
+                        else if (input.id.toLowerCase().includes('email') ||
+                            (input.id.toLowerCase().includes('id') && !input.id.toLowerCase().includes('pid'))) {
                             input.style.display = 'block';
+                            input.required = true;
+                        } else {
+                            input.style.display = 'none';
+                            input.required = false;
                         }
                     });
-                    // Hide form sections for read/delete
-                    form.querySelectorAll('.form-section').forEach(section => {
-                        section.style.display = 'none';
-                    });
-                } else {
+                } else if (action === 'update') {
                     // Update operation - show specific fields based on form type
+                    form.querySelectorAll('input, select, textarea').forEach(input => {
+                        input.style.display = 'none';
+                        input.required = false;
+                    });
+
                     if (crudType === 'pet') {
-                        // Para atualização de Pet, mostrar apenas ID, espécie e porte
-                        form.querySelectorAll('input, select, textarea').forEach(input => {
-                            const showField = input.id === 'petId' || 
-                                            input.id === 'petSpecies' || 
-                                            input.id === 'petSize';
-                            input.style.display = showField ? 'block' : 'none';
-                        });
-                        // Mostrar apenas a seção que contém os campos necessários
-                        form.querySelectorAll('.form-section').forEach(section => {
-                            section.style.display = section.querySelector('#petSpecies, #petSize') ? 'block' : 'none';
+                        // Para Pet: mostrar ID, espécie e porte
+                        ['petId', 'petSpecies', 'petSize'].forEach(fieldId => {
+                            const field = document.getElementById(fieldId);
+                            if (field) {
+                                field.style.display = 'block';
+                                if (fieldId !== 'petId') field.required = true;
+                            }
                         });
                     } else if (crudType === 'adocao') {
-                        // Para atualização de Adoção, mostrar apenas ID e status
-                        form.querySelectorAll('input, select, textarea').forEach(input => {
-                            const showField = input.id === 'adocaoId' || 
-                                            input.id === 'adocaoStatus';
-                            input.style.display = showField ? 'block' : 'none';
+                        // Para Adoção: mostrar ID e novo pet
+                        ['adocaoId', 'petIdAdocao'].forEach(fieldId => {
+                            const field = document.getElementById(fieldId);
+                            if (field) {
+                                field.style.display = 'block';
+                                if (fieldId !== 'adocaoId') field.required = true;
+                            }
                         });
-                        form.querySelectorAll('.form-section').forEach(section => {
-                            section.style.display = section.querySelector('#adocaoStatus') ? 'block' : 'none';
-                        });
-                    } else if (crudType === 'usuario' || crudType === 'admin' || crudType === 'voluntario') {
-                        // Para atualização de usuários, mostrar apenas ID, email e senha
-                        const prefix = crudType === 'usuario' ? 'usuario' : 
-                                     crudType === 'admin' ? 'admin' : 'voluntario';
-                        form.querySelectorAll('input, select, textarea').forEach(input => {
-                            const showField = input.id === `${prefix}Id` || 
-                                            input.id === `${prefix}Email` || 
-                                            input.id === `${prefix}Senha`;
-                            input.style.display = showField ? 'block' : 'none';
-                        });
-                        form.querySelectorAll('.form-section').forEach(section => {
-                            section.style.display = section.querySelector(`#${prefix}Email, #${prefix}Senha`) ? 'block' : 'none';
+                    } else {
+                        // Para usuários: mostrar email e telefone
+                        const prefix = crudType;
+                        [`${prefix}Email`, `${prefix}Telefone`].forEach(fieldId => {
+                            const field = document.getElementById(fieldId);
+                            if (field) {
+                                field.style.display = 'block';
+                                field.required = true;
+                            }
                         });
                     }
+
+                    form.querySelectorAll('.form-section').forEach((section, index) => {
+                        section.style.display = index === 0 ? 'block' : 'none';
+                    });
                 }
             }
         });
@@ -143,543 +193,303 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Handle form cancel buttons
     document.querySelectorAll('.cancel-btn').forEach(button => {
-        button.addEventListener('click', function() {
-            const formId = `${this.dataset.form}Form`;
-            const formContainer = document.querySelector(`#${formId}`).closest('.crud-form-container');
-            const form = document.getElementById(formId);
-            if (form && formContainer) {
-                formContainer.style.display = 'none';
-                if (form instanceof HTMLFormElement) {
-                    form.reset();
-                }
+        button.addEventListener('click', function () {
+            const formType = this.dataset.form;
+            const form = document.getElementById(`${formType}Form`);
+            if (form) {
+                form.style.display = 'none';
+                form.reset();
             }
         });
     });
 
     // Handle form submissions
     document.querySelectorAll('.submit-btn').forEach(button => {
-        button.addEventListener('click', async function(e) {
-            e.preventDefault(); // Previne o envio padrão do formulário
+        button.addEventListener('click', async function (e) {
+            e.preventDefault();
+
             const formType = this.dataset.form;
             const form = document.getElementById(`${formType}Form`);
-            
-            if (!(form instanceof HTMLFormElement)) {
-                console.error('Elemento não é um formulário válido');
+
+            if (!form) {
+                showNotification('Formulário não encontrado', 'error');
                 return;
             }
-            const action = form.querySelector('h5').textContent.toLowerCase().includes('criar') ? 'create' : 
-                          form.querySelector('h5').textContent.toLowerCase().includes('atualizar') ? 'update' :
-                          form.querySelector('h5').textContent.toLowerCase().includes('excluir') ? 'delete' : 'read';
+
+            const action = form.getAttribute('data-current-action') || 'create';
 
             // Get form data
-            const formData = {};
-            form.querySelectorAll('input, select, textarea').forEach(input => {
-                if (input.style.display !== 'none' && input.value) {
-                    // Map the field IDs to the expected backend property names
-                    const fieldMaps = {
-                        pet: {
-                            'petId': 'id_pet',
-                            'petName': 'nome',
-                            'petSpecies': 'especie',
-                            'petBreed': 'raca',
-                            'petAge': 'idade',
-                            'petSex': 'sexo',
-                            'petSize': 'porte',
-                            'petCep': 'cep',
-                            'petLogradouro': 'logradouro',
-                            'petNumero': 'numero',
-                            'petBairro': 'bairro',
-                            'petCidade': 'cidade',
-                            'petEstado': 'estado'
-                        },
-                        adocao: {
-                            'adocaoId': 'id_adocao',
-                            'id_pet': 'id_pet',
-                            'id_usuario': 'id_usuario'
-                        },
-                        usuario: {
-                            'usuarioId': 'id_usuario',
-                            'usuarioNome': 'nome',
-                            'usuarioSobrenome': 'sobrenome',
-                            'usuarioEmail': 'email',
-                            'usuarioSenha': 'senha',
-                            'usuarioDataNascimento': 'data_nascimento',
-                            'usuarioTelefone': 'telefone',
-                            'usuarioCpf': 'cpf',
-                            'usuarioCep': 'cep',
-                            'usuarioLogradouro': 'logradouro',
-                            'usuarioNumero': 'numero',
-                            'usuarioBairro': 'bairro',
-                            'usuarioCidade': 'cidade',
-                            'usuarioEstado': 'estado',
-                            'usuarioComplemento': 'complemento',
-                            'usuarioEscolaridade': 'escolaridade',
-                            'usuarioPossuiPet': 'possui_pet',
-                            'usuarioDesejaAdotar': 'deseja_adotar',
-                            'usuarioDesejaContribuir': 'deseja_contribuir'
-                        },
-                        admin: {
-                            'adminId': 'id_usuario',
-                            'adminNome': 'nome',
-                            'adminSobrenome': 'sobrenome',
-                            'adminEmail': 'email',
-                            'adminSenha': 'senha',
-                            'adminDataNascimento': 'data_nascimento',
-                            'adminTelefone': 'telefone',
-                            'adminCpf': 'cpf',
-                            'adminCep': 'cep',
-                            'adminLogradouro': 'logradouro',
-                            'adminNumero': 'numero',
-                            'adminBairro': 'bairro',
-                            'adminCidade': 'cidade',
-                            'adminEstado': 'estado',
-                            'adminComplemento': 'complemento',
-                            'adminEscolaridade': 'escolaridade',
-                            'adminPossuiPet': 'possui_pet',
-                            'adminFuncao': 'funcao'
-                        },
-                        voluntario: {
-                            'voluntarioId': 'id_usuario',
-                            'voluntarioNome': 'nome',
-                            'voluntarioSobrenome': 'sobrenome',
-                            'voluntarioEmail': 'email',
-                            'voluntarioSenha': 'senha',
-                            'voluntarioDataNascimento': 'data_nascimento',
-                            'voluntarioTelefone': 'telefone',
-                            'voluntarioCpf': 'cpf',
-                            'voluntarioCep': 'cep',
-                            'voluntarioLogradouro': 'logradouro',
-                            'voluntarioNumero': 'numero',
-                            'voluntarioBairro': 'bairro',
-                            'voluntarioCidade': 'cidade',
-                            'voluntarioEstado': 'estado',
-                            'voluntarioComplemento': 'complemento',
-                            'voluntarioEscolaridade': 'escolaridade',
-                            'voluntarioPossuiPet': 'possui_pet',
-                            'voluntarioFuncao': 'funcao',
-                            'voluntarioHabilidade': 'habilidade'
-                        }
-                    };
-                    const key = fieldMaps[formType]?.[input.id] || input.id.replace(formType, '').toLowerCase();
-                    // Converte para número se o campo for um ID ou idade
-                    if (key.toLowerCase().includes('id') || key === 'idade') {
-                        formData[key] = input.value ? Number(input.value) : null;
+            const formData = new FormData(form);
+            const data = {};
+
+            // Convert FormData to object and handle field mapping
+            for (let [key, value] of formData.entries()) {
+                if (value.trim() !== '') {
+                    // Convert numeric fields
+                    if (key.includes('id') || key === 'idade') {
+                        data[key] = parseInt(value) || value;
                     } else {
-                        formData[key] = input.value;
+                        data[key] = value;
                     }
                 }
-            });
+            }
+
+            // Handle special cases for different actions
+            if (action === 'read' || action === 'delete') {
+                // For read/delete, get the identifier from visible inputs
+                const visibleInputs = form.querySelectorAll('input[style*="block"], input:not([style*="none"])');
+                const identifierInput = Array.from(visibleInputs).find(input =>
+                    input.value.trim() !== '' &&
+                    (input.id.includes('Email') || input.id.includes('Id'))
+                );
+
+                if (identifierInput) {
+                    if (identifierInput.id.includes('Email')) {
+                        data.email = identifierInput.value;
+                    } else if (identifierInput.id.includes('Id')) {
+                        const idKey = getIdKeyForType(formType);
+                        data[idKey] = parseInt(identifierInput.value);
+                    }
+                }
+            }
 
             try {
-                // Select the appropriate API function based on form type and action
                 let response;
+
+                // Select the appropriate API function based on form type and action
                 switch (formType) {
                     case 'pet':
-                        switch (action) {
-                            case 'create': response = await createPet(formData); break;
-                            case 'read': response = await readPet(formData); break;
-                            case 'update': response = await updatePet(formData); break;
-                            case 'delete': response = await deletePet(formData); break;
-                        }
+                        response = await handlePetOperation(action, data);
                         break;
                     case 'adocao':
-                        switch (action) {
-                            case 'create': response = await createAdocao(formData); break;
-                            case 'read': response = await readAdocao(formData); break;
-                            case 'update': response = await updateAdocao(formData); break;
-                            case 'delete': response = await deleteAdocao(formData); break;
-                        }
+                        response = await handleAdocaoOperation(action, data);
                         break;
                     case 'usuario':
-                        switch (action) {
-                            case 'create': response = await createUsuario(formData); break;
-                            case 'read': response = await readUsuario(formData); break;
-                            case 'update': response = await updateUsuario(formData); break;
-                            case 'delete': response = await deleteUsuario(formData); break;
-                        }
+                        response = await handleUsuarioOperation(action, data);
                         break;
                     case 'admin':
-                        switch (action) {
-                            case 'create': response = await createAdmin(formData); break;
-                            case 'read': response = await readAdmin(formData); break;
-                            case 'update': response = await updateAdmin(formData); break;
-                            case 'delete': response = await deleteAdmin(formData); break;
-                        }
+                        response = await handleAdminOperation(action, data);
                         break;
                     case 'voluntario':
-                        switch (action) {
-                            case 'create': response = await createVoluntario(formData); break;
-                            case 'read': response = await readVoluntario(formData); break;
-                            case 'update': response = await updateVoluntario(formData); break;
-                            case 'delete': response = await deleteVoluntario(formData); break;
-                        }
+                        response = await handleVoluntarioOperation(action, data);
                         break;
                     default:
                         throw new Error(`Tipo de formulário não suportado: ${formType}`);
                 }
 
                 if (response.ok) {
-                    const data = await response.json();
-                    showNotification('Operação realizada com sucesso!', 'success');
+                    const responseData = await response.json();
+                    showNotification(getSuccessMessage(action, formType), 'success');
                     form.style.display = 'none';
                     form.reset();
 
-                    // Atualiza a tabela de resultados
-                    updateResultsTable(data, formType, action);
+                    // Update results table if it's a read operation
+                    if (action === 'read' && responseData.data) {
+                        updateResultsTable(responseData, formType, action);
+                    }
                 } else {
-                    throw new Error('Erro na operação');
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || `Erro na operação ${action}`);
                 }
             } catch (error) {
                 console.error('Erro completo:', error);
-                if (error.response) {
-                    const errorData = await error.response.json();
-                    showNotification(errorData.message || error.message, 'error');
-                } else {
-                    showNotification(error.message, 'error');
-                }
+                showNotification(error.message || 'Erro na operação', 'error');
             }
         });
     });
 
-    // Funções específicas para operações CRUD
-    // === PETS ===
-    async function createPet(data) {
-        const response = await fetch(`${API_BASE_URL}/pets`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-        });
-        return response;
+    // Helper functions for API operations
+    function getIdKeyForType(type) {
+        const idKeys = {
+            'pet': 'id_pet',
+            'adocao': 'id_adocao',
+            'usuario': 'id_usuario',
+            'admin': 'id_usuario',
+            'voluntario': 'id_usuario'
+        };
+        return idKeys[type] || 'id';
     }
 
-    async function readPet(data) {
-        const response = await fetch(`${API_BASE_URL}/pets/buscar`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-        });
-        return response;
+    function getSuccessMessage(action, type) {
+        const actions = {
+            'create': 'criado',
+            'read': 'encontrado',
+            'update': 'atualizado',
+            'delete': 'excluído'
+        };
+        return `${type.charAt(0).toUpperCase() + type.slice(1)} ${actions[action]} com sucesso!`;
     }
 
-    async function updatePet(data) {
-        const response = await fetch(`${API_BASE_URL}/pets/atualizar`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-        });
-        return response;
-    }
-
-    async function deletePet(data) {
-        const response = await fetch(`${API_BASE_URL}/pets/excluir`, {
-            method: 'DELETE',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-        });
-        return response;
-    }
-
-    // === ADOÇÕES ===
-    async function createAdocao(data) {
-        const response = await fetch(`${API_BASE_URL}/adocoes`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-        });
-        return response;
-    }
-
-    async function readAdocao(data) {
-        const response = await fetch(`${API_BASE_URL}/adocoes/buscar`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-        });
-        return response;
-    }
-
-    async function updateAdocao(data) {
-        const response = await fetch(`${API_BASE_URL}/adocoes/atualizar`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-        });
-        return response;
-    }
-
-    async function deleteAdocao(data) {
-        const response = await fetch(`${API_BASE_URL}/adocoes/excluir`, {
-            method: 'DELETE',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-        });
-        return response;
-    }
-
-    // === USUÁRIO COMUM ===
-    async function createUsuario(data) {
-        const response = await fetch(`${API_BASE_URL}/usuarios/comum`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-        });
-        return response;
-    }
-
-    async function readUsuario(data) {
-        const response = await fetch(`${API_BASE_URL}/usuarios/comum/buscar`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-        });
-        return response;
-    }
-
-    async function updateUsuario(data) {
-        const response = await fetch(`${API_BASE_URL}/usuarios/comum/telefone`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-        });
-        return response;
-    }
-
-    async function deleteUsuario(data) {
-        const response = await fetch(`${API_BASE_URL}/usuarios/comum/excluir`, {
-            method: 'DELETE',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-        });
-        return response;
-    }
-
-    // === ADMINISTRADOR ===
-    async function createAdmin(data) {
-        const response = await fetch(`${API_BASE_URL}/usuarios/administrador`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-        });
-        return response;
-    }
-
-    async function readAdmin(data) {
-        const response = await fetch(`${API_BASE_URL}/usuarios/administrador/buscar`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-        });
-        return response;
-    }
-
-    async function updateAdmin(data) {
-        const response = await fetch(`${API_BASE_URL}/usuarios/administrador/telefone`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-        });
-        return response;
-    }
-
-    async function deleteAdmin(data) {
-        const response = await fetch(`${API_BASE_URL}/usuarios/administrador/excluir`, {
-            method: 'DELETE',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-        });
-        return response;
-    }
-
-    // === VOLUNTÁRIO ===
-    async function createVoluntario(data) {
-        const response = await fetch(`${API_BASE_URL}/usuarios/voluntario`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-        });
-        return response;
-    }
-
-    async function readVoluntario(data) {
-        const response = await fetch(`${API_BASE_URL}/usuarios/voluntario/buscar`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-        });
-        return response;
-    }
-
-    async function updateVoluntario(data) {
-        const response = await fetch(`${API_BASE_URL}/usuarios/voluntario/telefone`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-        });
-        return response;
-    }
-
-    async function deleteVoluntario(data) {
-        const response = await fetch(`${API_BASE_URL}/usuarios/voluntario/excluir`, {
-            method: 'DELETE',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-        });
-        return response;
-    }
-
-    // Handle API calls for CRUD operations
-    async function handleApiCall(type, action, data) {
-        console.log('Tipo:', type, 'Ação:', action, 'Dados:', data);
-        
-        // Mapa de funções
-        const functionMap = {
-            pet: {
-                create: createPet,
-                read: readPet,
-                update: updatePet,
-                delete: deletePet
-            },
-            adocao: {
-                create: createAdocao,
-                read: readAdocao,
-                update: updateAdocao,
-                delete: deleteAdocao
-            },
-            usuario: {
-                create: createUsuario,
-                read: readUsuario,
-                update: updateUsuario,
-                delete: deleteUsuario
-            },
-            admin: {
-                create: createAdmin,
-                read: readAdmin,
-                update: updateAdmin,
-                delete: deleteAdmin
-            },
-            voluntario: {
-                create: createVoluntario,
-                read: readVoluntario,
-                update: updateVoluntario,
-                delete: deleteVoluntario
-            }
+    // Pet operations
+    async function handlePetOperation(action, data) {
+        const endpoints = {
+            'create': { url: `${API_BASE_URL}/pets`, method: 'POST' },
+            'read': { url: `${API_BASE_URL}/pets/buscar`, method: 'POST' },
+            'update': { url: `${API_BASE_URL}/pets/atualizar`, method: 'PUT' },
+            'delete': { url: `${API_BASE_URL}/pets/excluir`, method: 'DELETE' }
         };
 
-        // Chama a função específica para o tipo e ação
-        const operation = functionMap[type]?.[action];
-        if (!operation) {
-            throw new Error(`Operação não suportada: ${type} ${action}`);
-        }
-
-        return operation(data);
+        const endpoint = endpoints[action];
+        return fetch(endpoint.url, {
+            method: endpoint.method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
     }
 
-    // Função para atualizar a tabela de resultados
+    // Adocao operations
+    async function handleAdocaoOperation(action, data) {
+        const endpoints = {
+            'create': { url: `${API_BASE_URL}/adocoes`, method: 'POST' },
+            'read': { url: `${API_BASE_URL}/adocoes/buscar`, method: 'POST' },
+            'update': { url: `${API_BASE_URL}/adocoes/atualizar`, method: 'PUT' },
+            'delete': { url: `${API_BASE_URL}/adocoes/excluir`, method: 'DELETE' }
+        };
+
+        const endpoint = endpoints[action];
+        return fetch(endpoint.url, {
+            method: endpoint.method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+    }
+
+    // Usuario operations
+    async function handleUsuarioOperation(action, data) {
+        const endpoints = {
+            'create': { url: `${API_BASE_URL}/usuarios/comum`, method: 'POST' },
+            'read': { url: `${API_BASE_URL}/usuarios/comum/buscar`, method: 'POST' },
+            'update': { url: `${API_BASE_URL}/usuarios/comum/telefone`, method: 'PUT' },
+            'delete': { url: `${API_BASE_URL}/usuarios/comum/excluir`, method: 'DELETE' }
+        };
+
+        const endpoint = endpoints[action];
+        return fetch(endpoint.url, {
+            method: endpoint.method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+    }
+
+    // Admin operations
+    async function handleAdminOperation(action, data) {
+        const endpoints = {
+            'create': { url: `${API_BASE_URL}/usuarios/administrador`, method: 'POST' },
+            'read': { url: `${API_BASE_URL}/usuarios/administrador/buscar`, method: 'POST' },
+            'update': { url: `${API_BASE_URL}/usuarios/administrador/telefone`, method: 'PUT' },
+            'delete': { url: `${API_BASE_URL}/usuarios/administrador/excluir`, method: 'DELETE' }
+        };
+
+        const endpoint = endpoints[action];
+        return fetch(endpoint.url, {
+            method: endpoint.method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+    }
+
+    // Voluntario operations
+    async function handleVoluntarioOperation(action, data) {
+        const endpoints = {
+            'create': { url: `${API_BASE_URL}/usuarios/voluntario`, method: 'POST' },
+            'read': { url: `${API_BASE_URL}/usuarios/voluntario/buscar`, method: 'POST' },
+            'update': { url: `${API_BASE_URL}/usuarios/voluntario/telefone`, method: 'PUT' },
+            'delete': { url: `${API_BASE_URL}/usuarios/voluntario/excluir`, method: 'DELETE' }
+        };
+
+        const endpoint = endpoints[action];
+        return fetch(endpoint.url, {
+            method: endpoint.method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+    }
+
+    // Function to update results table
     function updateResultsTable(data, type, action) {
-        const resultsSection = document.querySelector('.results-section') || createResultsSection();
-        const tableBody = resultsSection.querySelector('tbody');
-        
-        // Limpa a tabela se for uma operação de leitura
-        if (action === 'read') {
-            tableBody.innerHTML = '';
+        let resultsSection = document.querySelector('.results-section');
+
+        if (!resultsSection) {
+            resultsSection = createResultsSection();
         }
 
-        // Configura o cabeçalho baseado no tipo
-            const headers = getHeadersForType(type);
-        updateTableHeaders(resultsSection.querySelector('thead'), headers);
+        const tableBody = resultsSection.querySelector('#tableBody');
+        const tableHeader = resultsSection.querySelector('#tableHeader');
 
-        // Atualiza o contador de resultados
-        const resultCount = resultsSection.querySelector('.result-count');
-        // Verifica se os dados estão dentro de uma propriedade data
+        if (!tableBody || !tableHeader) return;
+
+        // Clear table
+        tableBody.innerHTML = '';
+        tableHeader.innerHTML = '';
+
+        // Get data array
         const responseData = data.data || data;
         const items = Array.isArray(responseData) ? responseData : [responseData];
-        resultCount.textContent = `${items.length} registro${items.length === 1 ? '' : 's'} encontrado${items.length === 1 ? '' : 's'}`;        // Adiciona os dados na tabela
+
+        if (items.length === 0) {
+            tableBody.innerHTML = '<tr><td colspan="100%">Nenhum resultado encontrado</td></tr>';
+            return;
+        }
+
+        // Create headers based on first item
+        const firstItem = items[0];
+        const headers = Object.keys(firstItem);
+
+        const headerRow = document.createElement('tr');
+        headers.forEach(header => {
+            const th = document.createElement('th');
+            th.textContent = formatHeader(header);
+            headerRow.appendChild(th);
+        });
+        tableHeader.appendChild(headerRow);
+
+        // Add data rows
         items.forEach(item => {
             const row = document.createElement('tr');
             headers.forEach(header => {
                 const cell = document.createElement('td');
-                cell.textContent = formatCellValue(item[header.key]);
+                cell.textContent = formatCellValue(item[header]);
                 row.appendChild(cell);
             });
             tableBody.appendChild(row);
         });
 
-        // Mostra a seção de resultados
+        // Update result count
+        const resultCount = resultsSection.querySelector('#resultCount');
+        if (resultCount) {
+            resultCount.textContent = `${items.length} registro${items.length === 1 ? '' : 's'} encontrado${items.length === 1 ? '' : 's'}`;
+        }
+
+        // Show results section
         resultsSection.style.display = 'block';
     }
 
-    // Função para criar a seção de resultados se não existir
+    // Function to create results section if it doesn't exist
     function createResultsSection() {
-        const section = document.createElement('div');
+        const section = document.createElement('section');
         section.className = 'results-section';
         section.innerHTML = `
             <div class="results-container">
                 <div class="results-header">
-                    <h3>Resultados</h3>
+                    <h3 id="queryTitle">Resultados</h3>
                     <div class="results-info">
-                        <span class="result-count">0 resultados</span>
+                        <span id="resultCount" class="result-count">0 resultados</span>
                     </div>
                 </div>
                 <div class="table-wrapper">
-                    <table class="results-table">
-                        <thead><tr></tr></thead>
-                        <tbody></tbody>
+                    <table id="resultsTable" class="results-table">
+                        <thead id="tableHeader"></thead>
+                        <tbody id="tableBody"></tbody>
                     </table>
                 </div>
             </div>
         `;
-        document.querySelector('.main-content').appendChild(section);
+
+        const mainContent = document.querySelector('.main-content');
+        if (mainContent) {
+            mainContent.appendChild(section);
+        }
+
         return section;
-    }
-
-    // Função para obter os cabeçalhos baseado no tipo
-    function getHeadersForType(type) {
-        const headers = {
-            pet: [
-                { key: 'id_pet', label: 'id_pet' },
-                { key: 'nome', label: 'Nome' },
-                { key: 'especie', label: 'Espécie' },
-                { key: 'raca', label: 'Raça' },
-                { key: 'porte', label: 'Porte' },
-                { key: 'idade', label: 'Idade' }
-            ],
-            adocao: [
-                { key: 'id', label: 'ID' },
-                { key: 'petId', label: 'ID do Pet' },
-                { key: 'usuarioId', label: 'ID do Usuário' },
-                { key: 'status', label: 'Status' },
-                { key: 'dataAdocao', label: 'Data da Adoção' }
-            ],
-            usuario: [
-                { key: 'id', label: 'ID' },
-                { key: 'nome', label: 'Nome' },
-                { key: 'email', label: 'Email' },
-                { key: 'telefone', label: 'Telefone' }
-            ],
-            admin: [
-                { key: 'id', label: 'ID' },
-                { key: 'nome', label: 'Nome' },
-                { key: 'email', label: 'Email' },
-                { key: 'cargo', label: 'Cargo' }
-            ],
-            voluntario: [
-                { key: 'id', label: 'ID' },
-                { key: 'nome', label: 'Nome' },
-                { key: 'email', label: 'Email' },
-                { key: 'disponibilidade', label: 'Disponibilidade' }
-            ]
-        };
-        return headers[type] || [];
-    }
-
-    // Função para atualizar os cabeçalhos da tabela
-    function updateTableHeaders(thead, headers) {
-        const headerRow = thead.querySelector('tr');
-        headerRow.innerHTML = '';
-        headers.forEach(header => {
-            const th = document.createElement('th');
-            th.textContent = header.label;
-            headerRow.appendChild(th);
-        });
     }
 });

@@ -541,9 +541,9 @@ export class OngRoutes {
             `;
 
             const pets = await executeQuery(query, [id_pet]) as RowDataPacket[];
-
             
-            console.log('Pet encontrado:', pets[0]);
+            
+            console.log('Pet encontrado:', pets);
             return res.json({
                 status: 'success',
                 data: pets[0]
@@ -2316,3 +2316,281 @@ export class OngRoutes {
         }
     }
 }
+
+// Correções nas rotas de voluntário - adicionar ao rotasOng.ts
+
+// READ (R) - Buscar usuário voluntário por email - CORRIGIDO
+// getUsuarioVoluntarioByEmail = async (req: Request, res: Response) => {
+//     try {
+//         const { email } = req.body; // Mudança: pegar do body ao invés de params
+
+//         if (!email) {
+//             return res.status(400).json({
+//                 status: 'error',
+//                 message: 'Email é obrigatório'
+//             });
+//         }
+
+//         const query = `
+//             SELECT
+//                 U.id_usuario,
+//                 U.nome,
+//                 U.sobrenome,
+//                 U.email,
+//                 U.telefone,
+//                 U.possui_pet,
+//                 U.cidade,
+//                 U.estado,
+//                 V.funcao
+//             FROM
+//                 Usuario AS U
+//             JOIN
+//                 Voluntario AS V ON U.id_usuario = V.id_voluntario
+//             WHERE
+//                 U.email = ?
+//         `;
+
+//         const usuarios = await executeQuery(query, [email]) as RowDataPacket[];
+
+//         if (usuarios.length === 0) {
+//             return res.status(404).json({
+//                 status: 'error',
+//                 message: 'Usuário voluntário não encontrado'
+//             });
+//         }
+
+//         return res.json({
+//             status: 'success',
+//             data: usuarios[0]
+//         });
+
+//     } catch (error) {
+//         console.error('Erro ao buscar usuário voluntário:', error);
+//         return res.status(500).json({
+//             status: 'error',
+//             message: 'Erro ao buscar usuário voluntário',
+//             error: error instanceof Error ? error.message : 'Erro desconhecido'
+//         });
+//     }
+// }
+
+// // UPDATE (U) - Atualizar telefone do usuário voluntário - CORRIGIDO
+// updateTelefoneUsuarioVoluntario = async (req: Request, res: Response) => {
+//     try {
+//         const { email, telefone } = req.body; // Mudança: pegar do body ao invés de params
+
+//         if (!email) {
+//             return res.status(400).json({
+//                 status: 'error',
+//                 message: 'Email é obrigatório'
+//             });
+//         }
+
+//         if (!telefone) {
+//             return res.status(400).json({
+//                 status: 'error',
+//                 message: 'Telefone é obrigatório'
+//             });
+//         }
+
+//         // Verifica se o usuário existe
+//         const checkQuery = `SELECT id_usuario FROM Usuario WHERE email = ? AND tipo_usuario = 'voluntário'`;
+//         const existingUsuario = await executeQuery(checkQuery, [email]) as RowDataPacket[];
+
+//         if (existingUsuario.length === 0) {
+//             return res.status(404).json({
+//                 status: 'error',
+//                 message: 'Usuário voluntário não encontrado'
+//             });
+//         }
+
+//         // Atualiza o telefone
+//         const updateQuery = `UPDATE Usuario SET telefone = ? WHERE email = ?`;
+//         await executeQuery(updateQuery, [telefone, email]);
+
+//         return res.json({
+//             status: 'success',
+//             message: 'Telefone do usuário voluntário atualizado com sucesso',
+//             data: {
+//                 email,
+//                 telefone
+//             }
+//         });
+
+//     } catch (error) {
+//         console.error('Erro ao atualizar telefone do usuário voluntário:', error);
+//         return res.status(500).json({
+//             status: 'error',
+//             message: 'Erro ao atualizar telefone do usuário voluntário',
+//             error: error instanceof Error ? error.message : 'Erro desconhecido'
+//         });
+//     }
+// }
+
+// // UPDATE (U) - Atualizar possui_pet do usuário voluntário - CORRIGIDO
+// updatePossuiPetUsuarioVoluntario = async (req: Request, res: Response) => {
+//     try {
+//         const { email, possui_pet } = req.body; // Mudança: pegar do body ao invés de params
+
+//         if (!email) {
+//             return res.status(400).json({
+//                 status: 'error',
+//                 message: 'Email é obrigatório'
+//             });
+//         }
+
+//         if (!possui_pet) {
+//             return res.status(400).json({
+//                 status: 'error',
+//                 message: 'Possui_pet é obrigatório'
+//             });
+//         }
+
+//         // Verifica se o usuário existe
+//         const checkQuery = `SELECT id_usuario FROM Usuario WHERE email = ? AND tipo_usuario = 'voluntário'`;
+//         const existingUsuario = await executeQuery(checkQuery, [email]) as RowDataPacket[];
+
+//         if (existingUsuario.length === 0) {
+//             return res.status(404).json({
+//                 status: 'error',
+//                 message: 'Usuário voluntário não encontrado'
+//             });
+//         }
+
+//         // Atualiza possui_pet
+//         const updateQuery = `UPDATE Usuario SET possui_pet = ? WHERE email = ?`;
+//         await executeQuery(updateQuery, [possui_pet, email]);
+
+//         return res.json({
+//             status: 'success',
+//             message: 'Possui_pet do usuário voluntário atualizado com sucesso',
+//             data: {
+//                 email,
+//                 possui_pet
+//             }
+//         });
+
+//     } catch (error) {
+//         console.error('Erro ao atualizar possui_pet do usuário voluntário:', error);
+//         return res.status(500).json({
+//             status: 'error',
+//             message: 'Erro ao atualizar possui_pet do usuário voluntário',
+//             error: error instanceof Error ? error.message : 'Erro desconhecido'
+//         });
+//     }
+// }
+
+// // UPDATE (U) - Atualizar funcao do usuário voluntário - CORRIGIDO
+// updateFuncaoUsuarioVoluntario = async (req: Request, res: Response) => {
+//     try {
+//         const { email, funcao } = req.body; // Mudança: pegar do body ao invés de params
+
+//         if (!email) {
+//             return res.status(400).json({
+//                 status: 'error',
+//                 message: 'Email é obrigatório'
+//             });
+//         }
+
+//         if (!funcao) {
+//             return res.status(400).json({
+//                 status: 'error',
+//                 message: 'Funcao é obrigatório'
+//             });
+//         }
+
+//         // Verifica se o usuário existe
+//         const checkQuery = `SELECT id_usuario FROM Usuario WHERE email = ? AND tipo_usuario = 'voluntário'`;
+//         const existingUsuario = await executeQuery(checkQuery, [email]) as RowDataPacket[];
+
+//         if (existingUsuario.length === 0) {
+//             return res.status(404).json({
+//                 status: 'error',
+//                 message: 'Usuário voluntário não encontrado'
+//             });
+//         }
+
+//         const id_usuario = existingUsuario[0].id_usuario;
+
+//         // Atualiza funcao
+//         const updateQuery = `UPDATE Voluntario SET funcao = ? WHERE id_voluntario = ?`;
+//         await executeQuery(updateQuery, [funcao, id_usuario]);
+
+//         return res.json({
+//             status: 'success',
+//             message: 'Funcao do usuário voluntário atualizado com sucesso',
+//             data: {
+//                 email,
+//                 funcao
+//             }
+//         });
+
+//     } catch (error) {
+//         console.error('Erro ao atualizar funcao do usuário voluntário:', error);
+//         return res.status(500).json({
+//             status: 'error',
+//             message: 'Erro ao atualizar funcao do usuário voluntário',
+//             error: error instanceof Error ? error.message : 'Erro desconhecido'
+//         });
+//     }
+// }
+
+// // DELETE (D) - Excluir usuário voluntário - CORRIGIDO
+// deleteUsuarioVoluntario = async (req: Request, res: Response) => {
+//     try {
+//         const { email } = req.body; // Mudança: pegar do body ao invés de params
+
+//         if (!email) {
+//             return res.status(400).json({
+//                 status: 'error',
+//                 message: 'Email é obrigatório'
+//             });
+//         }
+
+//         // Verifica se o usuário existe
+//         const checkQuery = `SELECT id_usuario FROM Usuario WHERE email = ? AND tipo_usuario = 'voluntário'`;
+//         const existingUsuario = await executeQuery(checkQuery, [email]) as RowDataPacket[];
+
+//         if (existingUsuario.length === 0) {
+//             return res.status(404).json({
+//                 status: 'error',
+//                 message: 'Usuário voluntário não encontrado'
+//             });
+//         }
+
+//         const id_usuario = existingUsuario[0].id_usuario;
+
+//         // Inicia transação
+//         await executeQuery('START TRANSACTION');
+
+//         try {
+//             // Deleta registros relacionados em ordem
+//             await executeQuery('DELETE FROM Usuario WHERE email = ?', [email]);
+
+//             // Confirma a transação
+//             await executeQuery('COMMIT');
+
+//             return res.json({
+//                 status: 'success',
+//                 message: 'Usuário voluntário excluído com sucesso',
+//                 data: {
+//                     id_usuario,
+//                     email
+//                 }
+//             });
+
+//         } catch (error) {
+//             // Em caso de erro, faz rollback
+//             await executeQuery('ROLLBACK');
+//             throw error;
+//         }
+
+//     } catch (error) {
+//         console.error('Erro ao excluir usuário voluntário:', error);
+//         return res.status(500).json({
+//             status: 'error',
+//             message: 'Erro ao excluir usuário voluntário',
+//             error: error instanceof Error ? error.message : 'Erro desconhecido'
+//         });
+//     }
+// }
