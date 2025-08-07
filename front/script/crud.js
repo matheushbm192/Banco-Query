@@ -98,10 +98,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 // Handle which fields to show based on action
                 const idField = form.querySelector(`#${crudType}Id, #${crudType}Email`);
+                const petLocationSection = form.querySelector('.pet-location-section');
 
                 if (action === 'create') {
                     // Show all fields for create, except ID field
                     form.querySelectorAll('input, select, textarea').forEach(input => {
+
                         // Para adoção no create, mostrar apenas petIdAdocao e usuarioIdAdocao
                         if (crudType === 'adocao') {
                             if (input.id === 'petIdAdocao' || input.id === 'usuarioIdAdocao') {
@@ -135,7 +137,22 @@ document.addEventListener('DOMContentLoaded', function () {
                                 input.style.display = 'none';
                                 input.required = false;
                             }
+                        } else if (crudType === 'pet') {
+                            if (petLocationSection) {
+                                petLocationSection.style.display = 'none';
+                            }
+                            // Mostrar apenas o campo ID do pet
+                            form.querySelectorAll('input, select, textarea').forEach(input => {
+                                if (input.id === 'petId') {
+                                    input.style.display = 'block';
+                                    input.required = true;
+                                } else {
+                                    input.style.display = 'none';
+                                    input.required = false;
+                                }
+                            });
                         }
+
                         // Para outros tipos, lógica original
                         else if (input.id.toLowerCase().includes('email') ||
                             (input.id.toLowerCase().includes('id') && !input.id.toLowerCase().includes('pid'))) {
